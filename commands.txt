@@ -1,0 +1,7 @@
+mvn dependency:tree -Dverbose -Dincludes=org.codehaus.plexus:plexus-archiver
+
+mvn help:effective-pom -Dverbose | Select-String "plexus-archiver"
+
+mvn dependency:tree -Dincludes=org.codehaus.plexus:plexus-archiver -DoutputFile=plexus-tree.txt
+
+mvn clean install -U -DskipTests
