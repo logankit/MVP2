@@ -24,6 +24,7 @@
         <plexus-archiver.version>4.9.2</plexus-archiver.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <spring-security.version>6.2.1</spring-security.version>
+        <spring-core.version>6.0.16</spring-core.version>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -57,6 +58,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring-core.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-archiver</artifactId>
