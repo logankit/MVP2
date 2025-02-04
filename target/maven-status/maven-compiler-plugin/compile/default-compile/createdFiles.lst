@@ -1,0 +1,5 @@
+com\equifax\api\interconnect\controller\HealthController.class
+com\equifax\api\interconnect\InterconnectApplication.class
+com\equifax\api\interconnect\service\OktaTokenService.class
+com\equifax\api\interconnect\model\OktaTokenResponse.class
+com\equifax\api\interconnect\config\OktaConfig.class
