@@ -6,7 +6,8 @@ import com.equifax.api.interconnect.util.ApiConstants;
 
 @Configuration
 public class OktaConfig {
-    private final String tokenUrl = ApiConstants.OKTA_TOKEN_URL;
+    @Value("${okta.token-url}")
+    private String tokenUrl;
 
     @Value("${okta.username}")
     private String username;

@@ -29,7 +29,8 @@ public class OktaTokenService {
         logger.info("Client ID: %s", oktaConfig.getClientId());
         logger.info("Grant Type: %s", oktaConfig.getGrantType());
 
-        // Real implementation for Okta token generation
+        // Real implementation for Okta token generation - commented out for local testing
+        /*
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -64,8 +65,10 @@ public class OktaTokenService {
             logger.error("Error generating Okta token", e);
             throw new RuntimeException("Failed to generate Okta token", e);
         }
+        */
 
-        /* Simulation code - commented out
+        // Simulation code for local testing
+        logger.info("Using simulated Okta token for local testing");
         OktaTokenResponse mockResponse = new OktaTokenResponse();
         String simulatedToken = String.format("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIlcyIsImlhdCI6JXMifQ.signature",
             oktaConfig.getUsername(),
@@ -75,7 +78,10 @@ public class OktaTokenService {
         mockResponse.setTokenType("Bearer");
         mockResponse.setExpiresIn(3600);
         
+        logger.info("Simulated token generated successfully");
+        logger.info("Token type: %s", mockResponse.getTokenType());
+        logger.info("Token expires in: %d seconds", mockResponse.getExpiresIn());
+        
         return mockResponse;
-        */
     }
 }

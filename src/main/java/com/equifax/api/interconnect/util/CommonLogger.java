@@ -1,7 +1,7 @@
 package com.equifax.api.interconnect.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 
 public class CommonLogger {
     private final Logger logger;
@@ -9,7 +9,8 @@ public class CommonLogger {
 
     private CommonLogger(Class<?> clazz) {
         this.clazz = clazz;
-        this.logger = LoggerFactory.getLogger(clazz);
+        LoggerContext context = (LoggerContext) org.slf4j.LoggerFactory.getILoggerFactory();
+        this.logger = context.getLogger(clazz);
     }
 
     public static CommonLogger getLogger(Class<?> clazz) {
