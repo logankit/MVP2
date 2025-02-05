@@ -20,6 +20,14 @@ import com.equifax.api.interconnect.util.CommonLogger;
 import java.util.Arrays;
 import java.util.Base64;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.SecureRandom;
+
 @Service
 public class OktaTokenService {
     private static final CommonLogger logger = CommonLogger.getLogger(OktaTokenService.class);
@@ -73,7 +81,22 @@ public class OktaTokenService {
         logger.info("[OktaTokenService] Scope: sa.readprofile");
 
         try {
+            // Disable SSL certificate validation
+            TrustManager[] trustAllCerts = new TrustManager[] {
+                new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                }
+            };
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustAllCerts, new SecureRandom());
+
+            // Create RestTemplate with SSL context that trusts all certificates
             RestTemplate restTemplate = new RestTemplate();
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
             
             // Set up headers
             HttpHeaders headers = new HttpHeaders();
