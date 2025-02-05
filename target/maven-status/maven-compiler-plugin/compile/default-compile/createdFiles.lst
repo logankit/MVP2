@@ -6,7 +6,6 @@ com\equifax\api\interconnect\model\CombinedResponse.class
 com\equifax\api\interconnect\config\OktaConfig.class
 com\equifax\api\interconnect\model\RulesEditorRequest$DSG.class
 com\equifax\api\interconnect\model\RulesEditorResponse$Outcome.class
-com\equifax\api\interconnect\config\RestTemplateConfig$1.class
 com\equifax\api\interconnect\model\RulesEditorResponse$Reason.class
 com\equifax\api\interconnect\model\RulesEditorRequest$GrantDSGs.class
 com\equifax\api\interconnect\service\RulesEditorService.class
@@ -14,7 +13,6 @@ com\equifax\api\interconnect\util\CommonLogger.class
 com\equifax\api\interconnect\model\RulesEditorRequest$ComitmentDSGs.class
 com\equifax\api\interconnect\model\RulesEditorResponse.class
 com\equifax\api\interconnect\InterconnectApplication.class
-com\equifax\api\interconnect\config\RestTemplateConfig$2.class
 com\equifax\api\interconnect\model\RulesEditorRequest$FeeChargeOffer.class
 com\equifax\api\interconnect\config\RestTemplateConfig.class
 com\equifax\api\interconnect\util\ApiConstants.class

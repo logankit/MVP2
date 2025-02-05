@@ -127,7 +127,6 @@ public class OktaTokenService {
         map.add("password", password);
         map.add("client_id", clientId);
         map.add("client_secret", clientSecret);
-        map.add("scope", "sa.readprofile");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
