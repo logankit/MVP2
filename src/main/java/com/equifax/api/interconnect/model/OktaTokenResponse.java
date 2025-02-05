@@ -10,7 +10,7 @@ public class OktaTokenResponse {
     private String tokenType;
 
     @JsonProperty("expires_in")
-    private Integer expiresIn;
+    private int expiresIn;
 
     @JsonProperty("scope")
     private String scope;
@@ -31,11 +31,11 @@ public class OktaTokenResponse {
         this.tokenType = tokenType;
     }
 
-    public Integer getExpiresIn() {
+    public int getExpiresIn() {
         return expiresIn;
     }
 
-    public void setExpiresIn(Integer expiresIn) {
+    public void setExpiresIn(int expiresIn) {
         this.expiresIn = expiresIn;
     }
 

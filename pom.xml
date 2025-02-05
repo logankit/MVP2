@@ -24,11 +24,9 @@
     <profiles>
         <profile>
             <id>local</id>
-
             <properties>
                 <activatedProperties>local</activatedProperties>
             </properties>
-
         </profile>
         <profile>
             <id>server</id>
@@ -38,7 +36,6 @@
             <properties>
                 <activatedProperties>server</activatedProperties>
             </properties>
-
         </profile>
     </profiles>
 

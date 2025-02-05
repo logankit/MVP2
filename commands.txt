@@ -9,3 +9,6 @@ mvn clean install -U -DskipTests
 Get-NetTCPConnection -LocalPort 8081
 
 Stop-Process -Id (Get-NetTCPConnection -LocalPort 8081).OwningProcess -Force
+
+
+http://localhost:8080/interconnect/api/v1/token
