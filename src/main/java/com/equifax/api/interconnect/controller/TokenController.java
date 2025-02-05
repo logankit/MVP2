@@ -1,7 +1,6 @@
 package com.equifax.api.interconnect.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,12 +16,12 @@ public class TokenController {
     private OktaTokenService oktaTokenService;
 
     @PostMapping("/token")
-    public ResponseEntity<OktaTokenResponse> getToken() {
+    public OktaTokenResponse getToken() {
         logger.info("Received token request");
         try {
             OktaTokenResponse response = oktaTokenService.getOktaToken();
             logger.info("Token request processed successfully");
-            return ResponseEntity.ok(response);
+            return response;
         } catch (Exception e) {
             logger.error("Error processing token request: %s", e.getMessage());
             throw e;

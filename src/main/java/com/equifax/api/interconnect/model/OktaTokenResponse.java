@@ -12,6 +12,9 @@ public class OktaTokenResponse {
     @JsonProperty("expires_in")
     private Integer expiresIn;
 
+    @JsonProperty("scope")
+    private String scope;
+
     public String getAccessToken() {
         return accessToken;
     }
@@ -34,5 +37,13 @@ public class OktaTokenResponse {
 
     public void setExpiresIn(Integer expiresIn) {
         this.expiresIn = expiresIn;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }
