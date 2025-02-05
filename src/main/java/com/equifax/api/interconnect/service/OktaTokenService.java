@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -64,11 +65,12 @@ public class OktaTokenService {
     }
 
     private OktaTokenResponse getRealToken() {
-        logger.info("Initiating real Okta token request");
-        logger.debug("Token URL: %s", oktaConfig.getTokenUrl());
-        logger.debug("Username: %s", oktaConfig.getUsername());
-        logger.debug("Client ID: %s", oktaConfig.getClientId());
-        logger.debug("Grant Type: %s", oktaConfig.getGrantType());
+        logger.info("[OktaTokenService] Initiating real Okta token request");
+        logger.info("[OktaTokenService] Token URL: {}", oktaConfig.getTokenUrl());
+        logger.info("[OktaTokenService] Username: {}", oktaConfig.getUsername());
+        logger.info("[OktaTokenService] Client ID: {}", oktaConfig.getClientId());
+        logger.info("[OktaTokenService] Grant Type: {}", oktaConfig.getGrantType());
+        logger.info("[OktaTokenService] Scope: sa.readprofile");
 
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -81,40 +83,36 @@ public class OktaTokenService {
             String auth = oktaConfig.getClientId() + ":" + oktaConfig.getClientSecret();
             String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
             headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
+            logger.debug("[OktaTokenService] Basic auth header created");
             
             // Set up form parameters
             MultiValueMap<String, String> formParams = new LinkedMultiValueMap<>();
             formParams.add("grant_type", oktaConfig.getGrantType());
             formParams.add("username", oktaConfig.getUsername());
             formParams.add("password", oktaConfig.getPassword());
-            formParams.add("scope", "openid");
+            formParams.add("scope", "sa.readprofile");
 
             // Create request entity
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formParams, headers);
-            
-            // Log request details (excluding sensitive info)
-            logger.debug("Request headers: %s", headers.entrySet().stream()
-                .filter(e -> !e.getKey().equalsIgnoreCase("Authorization"))
-                .map(e -> e.getKey() + ": " + e.getValue())
-                .reduce("", (a, b) -> a + "\n" + b));
-            logger.debug("Request parameters: grant_type=%s, username=%s, scope=%s", 
-                oktaConfig.getGrantType(), oktaConfig.getUsername(), "openid");
+            logger.info("[OktaTokenService] Making POST request to Okta token endpoint");
 
             // Make the request
-            ResponseEntity<OktaTokenResponse> response = restTemplate.postForEntity(
+            ResponseEntity<OktaTokenResponse> response = restTemplate.exchange(
                 oktaConfig.getTokenUrl(),
+                HttpMethod.POST,
                 requestEntity,
                 OktaTokenResponse.class
             );
 
-            logger.info("Token request successful");
+            logger.info("[OktaTokenService] Token request successful");
             return response.getBody();
 
         } catch (HttpClientErrorException e) {
-            logger.error("HTTP error during token request: %s - %s", e.getStatusCode(), e.getResponseBodyAsString());
+            logger.error("[OktaTokenService] HTTP error during token request: {} - {}", 
+                e.getStatusCode(), e.getResponseBodyAsString());
             throw new RuntimeException("Failed to obtain Okta token: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            logger.error("Error obtaining Okta token: %s", e.getMessage());
+            logger.error("[OktaTokenService] Unexpected error during token request", e);
             throw new RuntimeException("Failed to obtain Okta token", e);
         }
     }

@@ -1,7 +1,7 @@
 package com.equifax.api.interconnect.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.equifax.api.interconnect.model.OktaTokenResponse;
@@ -15,7 +15,7 @@ public class TokenController {
     @Autowired
     private OktaTokenService oktaTokenService;
 
-    @PostMapping("/token")
+    @GetMapping("/token")
     public OktaTokenResponse getToken() {
         logger.info("Received token request");
         try {
