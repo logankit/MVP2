@@ -102,17 +102,18 @@ public class OktaTokenService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             
-            // Add Basic Authentication
-            String auth = oktaConfig.getClientId() + ":" + oktaConfig.getClientSecret();
-            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
-            headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
+            // Add Basic Authentication using -u format (same as curl)
+            String credentials = oktaConfig.getClientId() + ":" + oktaConfig.getClientSecret();
+            byte[] credentialsBytes = credentials.getBytes();
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentialsBytes);
+            headers.add(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials);
             logger.debug("[OktaTokenService] Basic auth header created");
             
-            // Set up form parameters
+            // Set up form parameters (separate -d parameters like in curl)
             MultiValueMap<String, String> formParams = new LinkedMultiValueMap<>();
-            formParams.add("grant_type", oktaConfig.getGrantType());
             formParams.add("username", oktaConfig.getUsername());
             formParams.add("password", oktaConfig.getPassword());
+            formParams.add("grant_type", oktaConfig.getGrantType());
             formParams.add("scope", "sa.readprofile");
 
             // Create request entity
