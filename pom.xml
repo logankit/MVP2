@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
+        <version>3.2.2</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.equifax.api.interconnect</groupId>
@@ -15,10 +15,10 @@
     <name>c2o-interconnect-client</name>
 
     <properties>
-        <java.version>17</java.version>
-        <jackson.version>2.15.2</jackson.version>
-        <logback.version>1.4.11</logback.version>
-        <slf4j.version>2.0.9</slf4j.version>
+        <java.version>17.0.10</java.version>
+        <jackson.version>2.16.1</jackson.version>
+        <logback.version>1.5.13</logback.version>
+        <slf4j.version>2.0.12</slf4j.version>
         <maven.enforcer.skip>true</maven.enforcer.skip>
     </properties>
     <profiles>
@@ -142,8 +142,23 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.3.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.6.1</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.codehaus.plexus</groupId>
@@ -155,12 +170,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.12.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <release>17</release>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -170,7 +190,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.6.0</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.codehaus.plexus</groupId>
@@ -186,6 +206,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.2.2</version>
             </plugin>
 
             <!-- Compiler Plugin -->
@@ -195,6 +216,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <release>17</release>
                 </configuration>
             </plugin>
 
