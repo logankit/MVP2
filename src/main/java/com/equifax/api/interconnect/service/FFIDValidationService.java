@@ -16,80 +16,86 @@ import com.equifax.api.interconnect.model.OktaTokenResponse;
 import com.equifax.api.interconnect.model.ReferenceFFIDRequest;
 import com.equifax.api.interconnect.util.CommonLogger;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.security.SecureRandom;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 @Service
 public class FFIDValidationService {
     private static final CommonLogger logger = CommonLogger.getLogger(FFIDValidationService.class);
 
     @Value("${ffid.validation.url}")
-    private String validationUrl;
+    private String ffidValidationUrl;
 
     @Autowired
     private OktaTokenService oktaTokenService;
 
-    public DecisionResponse validateFFID() {
-        logger.info("[FFIDValidationService] Starting FFID validation");
-        logger.info("[FFIDValidationService] Using validation URL: {}", validationUrl);
-        
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private String getBuIdForContract(Long contractId) {
+        String sql = "SELECT BU_ID FROM C2O_CONTRACT_BU_INTR WHERE CONTRACT_ID = :contractId";
         try {
-            // Disable SSL certificate validation (curl -k equivalent)
-            TrustManager[] trustAllCerts = new TrustManager[] {
-                new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
-                }
-            };
+            return (String) entityManager.createNativeQuery(sql)
+                                      .setParameter("contractId", contractId)
+                                      .getSingleResult();
+        } catch (NoResultException e) {
+            throw new RuntimeException("No BU found for contract: " + contractId);
+        }
+    }
 
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, trustAllCerts, new SecureRandom());
+    public DecisionResponse validateFFID(Long contractId) {
+        String buId = getBuIdForContract(contractId);
+        String fullUrl = ffidValidationUrl + "_" + buId;
 
-            // Create RestTemplate with SSL context that trusts all certificates
-            RestTemplate restTemplate = new RestTemplate();
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+        logger.info("[FFIDValidationService] Starting FFID validation");
+        logger.info("[FFIDValidationService] Using validation URL: {}", fullUrl);
 
-            // Get token from OktaTokenService
+        try {
+            // Get Okta token
             OktaTokenResponse tokenResponse = oktaTokenService.getOktaToken();
-            logger.info("[FFIDValidationService] Successfully obtained Okta token");
-            
+
             // Set up headers with bearer token
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(tokenResponse.getAccessToken());
-            
-            // Create request body (hardcoded for now)
-            ReferenceFFIDRequest requestBody = createHardcodedRequest();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Create request entity
+            // Create request body
+            ReferenceFFIDRequest requestBody = createHardcodedRequest();
             HttpEntity<ReferenceFFIDRequest> requestEntity = new HttpEntity<>(requestBody, headers);
-            
+
             logger.info("[FFIDValidationService] Making POST request to validation endpoint");
-            // Make the POST request
-            ResponseEntity<DecisionResponse[]> response = restTemplate.exchange(
-                validationUrl,
+            ResponseEntity<DecisionResponse> response = restTemplate.exchange(
+                fullUrl,
                 HttpMethod.POST,
                 requestEntity,
-                DecisionResponse[].class
+                DecisionResponse.class
             );
 
             logger.info("[FFIDValidationService] FFID validation request successful");
-            return response.getBody()[0];  // Return first element as per example
+            return response.getBody();
 
         } catch (HttpClientErrorException e) {
             logger.error("[FFIDValidationService] HTTP error during FFID validation: {} - {}", 
                 e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("Failed to validate FFID: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            throw e;
         } catch (Exception e) {
-            logger.error("[FFIDValidationService] Unexpected error during FFID validation", e);
-            throw new RuntimeException("Failed to validate FFID", e);
+            logger.error("[FFIDValidationService] Error during FFID validation: {}", e.getMessage());
+            throw e;
         }
     }
 
