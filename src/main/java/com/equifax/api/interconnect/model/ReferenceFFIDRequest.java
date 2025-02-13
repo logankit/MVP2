@@ -4,7 +4,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ReferenceFFIDRequest {
-    @JsonProperty("ReferenceFFID")
+    @JsonProperty("referenceFFID")
     private ReferenceFFID referenceFFID;
 
     public ReferenceFFID getReferenceFFID() {
@@ -16,92 +16,108 @@ public class ReferenceFFIDRequest {
     }
 
     public static class ReferenceFFID {
-        private boolean NewBillTo;
-        private List<String> ActiveChargeOffers;
-        private List<String> ActiveChargeOffersTypes;
-        private String C2oGTMEfxID;
-        private String SfdGTMEfxID;
+        @JsonProperty("newBillTo")
+        private boolean newBillTo;
+        
+        @JsonProperty("activeChargeOffers")
+        private List<String> activeChargeOffers;
+        
+        @JsonProperty("activeChargeOffersTypes")
+        private List<String> activeChargeOffersTypes;
+        
+        @JsonProperty("c2oGTMEfxID")
+        private String c2oGTMEfxID;
+        
+        @JsonProperty("sfdGTMEfxID")
+        private String sfdGTMEfxID;
+        
+        @JsonProperty("DSGs")
         private List<DSG> DSGs;
-        private List<FeeChargeOffer> FeeChargeOffers;
+        
+        @JsonProperty("feeChargeOffers")
+        private List<FeeChargeOffer> feeChargeOffers;
 
-        // Getters and Setters
         public boolean isNewBillTo() {
-            return NewBillTo;
+            return newBillTo;
         }
 
         public void setNewBillTo(boolean newBillTo) {
-            this.NewBillTo = newBillTo;
+            this.newBillTo = newBillTo;
         }
 
         public List<String> getActiveChargeOffers() {
-            return ActiveChargeOffers;
+            return activeChargeOffers;
         }
 
         public void setActiveChargeOffers(List<String> activeChargeOffers) {
-            this.ActiveChargeOffers = activeChargeOffers;
+            this.activeChargeOffers = activeChargeOffers;
         }
 
         public List<String> getActiveChargeOffersTypes() {
-            return ActiveChargeOffersTypes;
+            return activeChargeOffersTypes;
         }
 
         public void setActiveChargeOffersTypes(List<String> activeChargeOffersTypes) {
-            this.ActiveChargeOffersTypes = activeChargeOffersTypes;
+            this.activeChargeOffersTypes = activeChargeOffersTypes;
         }
 
         public String getC2oGTMEfxID() {
-            return C2oGTMEfxID;
+            return c2oGTMEfxID;
         }
 
         public void setC2oGTMEfxID(String c2oGTMEfxID) {
-            this.C2oGTMEfxID = c2oGTMEfxID;
+            this.c2oGTMEfxID = c2oGTMEfxID;
         }
 
         public String getSfdGTMEfxID() {
-            return SfdGTMEfxID;
+            return sfdGTMEfxID;
         }
 
         public void setSfdGTMEfxID(String sfdGTMEfxID) {
-            this.SfdGTMEfxID = sfdGTMEfxID;
+            this.sfdGTMEfxID = sfdGTMEfxID;
         }
 
         public List<DSG> getDSGs() {
             return DSGs;
         }
 
-        public void setDSGs(List<DSG> dSGs) {
-            this.DSGs = dSGs;
+        public void setDSGs(List<DSG> DSGs) {
+            this.DSGs = DSGs;
         }
 
         public List<FeeChargeOffer> getFeeChargeOffers() {
-            return FeeChargeOffers;
+            return feeChargeOffers;
         }
 
         public void setFeeChargeOffers(List<FeeChargeOffer> feeChargeOffers) {
-            this.FeeChargeOffers = feeChargeOffers;
+            this.feeChargeOffers = feeChargeOffers;
         }
     }
 
     public static class DSG {
-        private ComitmentDSGs ComitmentDSGs;
-        private GrantDSGs GrantDSGs;
+        @JsonProperty("comitmentDSGs")
+        private ComitmentDSGs comitmentDSGs;
+        
+        @JsonProperty("grantDSGs")
+        private GrantDSGs grantDSGs;
+        
+        @JsonProperty("hasAGGRs")
         private boolean hasAGGRs;
 
-        // Getters and Setters
         public ComitmentDSGs getComitmentDSGs() {
-            return ComitmentDSGs;
+            return comitmentDSGs;
         }
 
         public void setComitmentDSGs(ComitmentDSGs comitmentDSGs) {
-            this.ComitmentDSGs = comitmentDSGs;
+            this.comitmentDSGs = comitmentDSGs;
         }
 
         public GrantDSGs getGrantDSGs() {
-            return GrantDSGs;
+            return grantDSGs;
         }
 
         public void setGrantDSGs(GrantDSGs grantDSGs) {
-            this.GrantDSGs = grantDSGs;
+            this.grantDSGs = grantDSGs;
         }
 
         public boolean isHasAGGRs() {
@@ -114,59 +130,63 @@ public class ReferenceFFIDRequest {
     }
 
     public static class ComitmentDSGs {
-        private boolean IsOwner;
-        private boolean HasAggrLinkage;
+        @JsonProperty("isOwner")
+        private boolean isOwner;
+        
+        @JsonProperty("hasAggrLinkage")
+        private boolean hasAggrLinkage;
 
-        // Getters and Setters
         public boolean isIsOwner() {
-            return IsOwner;
+            return isOwner;
         }
 
         public void setIsOwner(boolean isOwner) {
-            this.IsOwner = isOwner;
+            this.isOwner = isOwner;
         }
 
         public boolean isHasAggrLinkage() {
-            return HasAggrLinkage;
+            return hasAggrLinkage;
         }
 
         public void setHasAggrLinkage(boolean hasAggrLinkage) {
-            this.HasAggrLinkage = hasAggrLinkage;
+            this.hasAggrLinkage = hasAggrLinkage;
         }
     }
 
     public static class GrantDSGs {
-        private boolean IsOnwer;
+        @JsonProperty("isOnwer")
+        private boolean isOnwer;
 
-        // Getters and Setters
         public boolean isIsOnwer() {
-            return IsOnwer;
+            return isOnwer;
         }
 
         public void setIsOnwer(boolean isOnwer) {
-            this.IsOnwer = isOnwer;
+            this.isOnwer = isOnwer;
         }
     }
 
     public static class FeeChargeOffer {
-        private String ChargeOffer;
-        private int Amount;
+        @JsonProperty("chargeOffer")
+        private String chargeOffer;
+        
+        @JsonProperty("amount")
+        private int amount;
 
-        // Getters and Setters
         public String getChargeOffer() {
-            return ChargeOffer;
+            return chargeOffer;
         }
 
         public void setChargeOffer(String chargeOffer) {
-            this.ChargeOffer = chargeOffer;
+            this.chargeOffer = chargeOffer;
         }
 
         public int getAmount() {
-            return Amount;
+            return amount;
         }
 
         public void setAmount(int amount) {
-            this.Amount = amount;
+            this.amount = amount;
         }
     }
 }
