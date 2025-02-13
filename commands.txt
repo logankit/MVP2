@@ -18,3 +18,44 @@ GET http://localhost:8081/interconnect/api/v1/validateFFID
 
 http://localhost:8081/token
 http://localhost:8081/validateFFID/170933
+
+
+{
+  "ReferenceFFID": {
+    "NewBillTo": false,
+    "ActiveChargeOffers": [
+      "0210100085_ACO.GEN.M01.I.ARR_3",
+      "0210100681_ACO.GEN.M01.I.ARR_2",
+      "0210100693_ACO.GEN.M01.I.ADV_2",
+      "0210100832_ACO.GEN.M01.I.ARR_3"
+    ],
+    "ActiveChargeOffersTypes": [
+      "_2",
+      "_3"
+    ],
+    "C2oGTMEfxID": "101425762",
+    "SfdGTMEfxID": "101425762",
+    "DSGs": [
+      {
+        "ComitmentDSGs": {
+          "IsOwner": false,
+          "HasAggrLinkage": false
+        },
+        "GrantDSGs": {
+          "IsOnwer": false
+        },
+        "HasAGGRs": false
+      }
+    ],
+    "FeeChargeOffers": [
+      {
+        "ChargeOffer": "0210100681_ACO.GEN.M01.I.ARR_2",
+        "Amount": 156
+      },
+      {
+        "ChargeOffer": "0210100693_ACO.GEN.M01.I.ADV_2",
+        "Amount": 500
+      }
+    ]
+  }
+}

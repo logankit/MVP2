@@ -123,9 +123,9 @@ public class FFIDValidationService {
                     (String) row[3],           // buId
                     (String) row[4],           // efxId
                     (String) row[5],           // chargeOfferType
-                    (String) row[6],           // grantDsg
-                    (String) row[7],           // cmtDsg
-                    (String) row[8],           // hasAggrLinkage
+                    String.valueOf(row[6]),    // grantDsg
+                    String.valueOf(row[7]),    // cmtDsg
+                    String.valueOf(row[8]),    // hasAggrLinkage
                     (java.math.BigDecimal) row[9]        // amount
                 ))
                 .collect(Collectors.toList());
