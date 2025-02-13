@@ -38,8 +38,6 @@ public class TokenController {
     @GetMapping("/validateFFID/{contractId}")
     public ResponseEntity<DecisionResponse> getValidateFFID(@PathVariable Long contractId) {
         logger.info("[TokenController] Received request to validate FFID for contract: {}", contractId);
-        DecisionResponse response = ffidValidationService.validateFFID(contractId);
-        logger.info("[TokenController] Successfully validated FFID for contract: {}", contractId);
-        return ResponseEntity.ok(response);
+        return ffidValidationService.validateFFID(contractId);
     }
 }

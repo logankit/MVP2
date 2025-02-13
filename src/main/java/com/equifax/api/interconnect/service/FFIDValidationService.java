@@ -207,7 +207,7 @@ public class FFIDValidationService {
         return request;
     }
 
-    public DecisionResponse validateFFID(Long contractId) {
+    public ResponseEntity<DecisionResponse> validateFFID(Long contractId) {
         logger.info("Validating FFID for contract: {}", contractId);
         
         List<FFIDQueryResult> queryResults = executeFFIDQuery(contractId);
@@ -243,27 +243,28 @@ public class FFIDValidationService {
             HttpEntity<ReferenceFFIDRequest> requestEntity = new HttpEntity<>(request, headers);
 
             logger.info("[FFIDValidationService] Making POST request to validation endpoint");
-            ResponseEntity<DecisionResponse> response = restTemplate.exchange(
+            ResponseEntity<DecisionResponse[]> response = restTemplate.exchange(
                 fullUrl,
                 HttpMethod.POST,
                 requestEntity,
-                DecisionResponse.class
+                DecisionResponse[].class
             );
 
             logger.info("[FFIDValidationService] FFID validation request successful");
-            DecisionResponse body = response.getBody();
-            if (body != null) {
+            DecisionResponse[] responses = response.getBody();
+            if (responses != null && responses.length > 0) {
                 logger.info("[FFIDValidationService] Response body received");
-                if (body.getOutcome() != null) {
-                    logger.info("[FFIDValidationService] Outcome status: {}", body.getOutcome().getStatus());
+                DecisionResponse firstResponse = responses[0];
+                if (firstResponse.getOutcome() != null) {
+                    logger.info("[FFIDValidationService] Outcome status: {}", firstResponse.getOutcome().getStatus());
                 } else {
                     logger.warn("[FFIDValidationService] Response body has null outcome");
                 }
+                return ResponseEntity.ok(firstResponse);
             } else {
-                logger.warn("[FFIDValidationService] Received null response body");
+                logger.warn("[FFIDValidationService] Received empty response body");
+                return ResponseEntity.ok(null);
             }
-            return body;
-
         } catch (HttpClientErrorException e) {
             logger.error("[FFIDValidationService] HTTP error during FFID validation: {} - {}", 
                 e.getStatusCode(), e.getResponseBodyAsString());

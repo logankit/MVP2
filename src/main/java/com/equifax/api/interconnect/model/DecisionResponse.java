@@ -1,8 +1,10 @@
 package com.equifax.api.interconnect.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class DecisionResponse {
+    @JsonProperty("Outcome")
     private Outcome Outcome;
 
     public Outcome getOutcome() {
@@ -14,12 +16,18 @@ public class DecisionResponse {
     }
 
     public static class Outcome {
+        @JsonProperty("status")
         private String status;
+        
+        @JsonProperty("chargeOffersExclusions")
         private List<String> chargeOffersExclusions;
+        
+        @JsonProperty("ChargeOffersTypes")
         private List<String> ChargeOffersTypes;
+        
+        @JsonProperty("Reasons")
         private List<Reason> Reasons;
 
-        // Getters and Setters
         public String getStatus() {
             return status;
         }
@@ -54,6 +62,7 @@ public class DecisionResponse {
     }
 
     public static class Reason {
+        @JsonProperty("message")
         private String message;
 
         public String getMessage() {
