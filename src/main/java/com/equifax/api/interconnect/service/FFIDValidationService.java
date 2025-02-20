@@ -58,7 +58,7 @@ public class FFIDValidationService {
             decode(cor.rate_tier, 'Commitment', 'Y', 'N') cmt_dsg,
             decode(cco.aggregator_link, NULL, 'N', 'Y') Has_Aggr_Linkage,
             cco.contract_price amount,
-            cco.fulfillment_id
+            ce.fulfillment_id
         FROM 
             c2o_contract_entitlement ce,
             c2o_contract c,
@@ -202,8 +202,20 @@ public class FFIDValidationService {
             return ResponseEntity.badRequest().build();
         }
 
+        // Log the JSON payload
         try {
-            String fullUrl = ffidValidationUrl;
+            String jsonPayload = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+            logger.info("FFID Validation Request Payload:\n{}", jsonPayload);
+        } catch (Exception e) {
+            logger.error("Error serializing FFID request payload", e);
+        }
+        
+        logger.info("Successfully built FFID payload for contract: {}", contractId);
+
+        try {
+            // Get BU ID using the dedicated method
+            String buId = getBuIdForContract(contractId);
+            String fullUrl = ffidValidationUrl + "_" + buId;
             logger.info("[FFIDValidationService] Using validation URL: {}", fullUrl);
 
             // Get Okta token
@@ -228,6 +240,14 @@ public class FFIDValidationService {
             logger.info("[FFIDValidationService] FFID validation request successful");
             DecisionResponse decisionResponse = response.getBody();
             if (decisionResponse != null && decisionResponse.getOutcome() != null) {
+                // Log the response payload
+                try {
+                    String responseJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decisionResponse);
+                    logger.info("FFID Validation Response:\n{}", responseJson);
+                } catch (Exception e) {
+                    logger.error("Error serializing response payload", e);
+                }
+                
                 logger.info("[FFIDValidationService] Outcome status: {}", decisionResponse.getOutcome().getStatus());
                 return ResponseEntity.ok(decisionResponse);
             } else {
