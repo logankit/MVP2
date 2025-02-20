@@ -77,7 +77,7 @@ public class FFIDValidationService {
             AND cor.charge_offer_id = cco.charge_offer_id
             AND cco.id = ce.line_charge_offer_id
             AND (cco.purchase_end_date is null or cco.purchase_end_date > trunc(sysdate))
-            AND cco.fulfillment_id = :fulfillmentId
+            AND ce.fulfillment_id = :fulfillmentId
             AND c.version_status in (32,34)
         ORDER BY 
             cco.charge_offer_id
