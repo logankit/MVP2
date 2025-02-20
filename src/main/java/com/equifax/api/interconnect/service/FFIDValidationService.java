@@ -142,9 +142,10 @@ public class FFIDValidationService {
         referenceFFID.setC2oGTMEfxID(firstResult.getEfxId());
         referenceFFID.setSfdGTMEfxID(firstResult.getEfxId());
 
-        // Set active charge offers
+        // Set active charge offers (unique)
         List<String> activeChargeOffers = results.stream()
             .map(FFIDQueryResult::getChargeOfferId)
+            .distinct()
             .collect(Collectors.toList());
         referenceFFID.setActiveChargeOffers(activeChargeOffers);
 
@@ -230,31 +231,32 @@ public class FFIDValidationService {
             HttpEntity<ReferenceFFIDRequest> requestEntity = new HttpEntity<>(request, headers);
 
             logger.info("[FFIDValidationService] Making POST request to validation endpoint");
-            ResponseEntity<DecisionResponse> response = restTemplate.exchange(
+            ResponseEntity<DecisionResponse[]> response = restTemplate.exchange(
                 fullUrl,
                 HttpMethod.POST,
                 requestEntity,
-                DecisionResponse.class
+                DecisionResponse[].class
             );
 
             logger.info("[FFIDValidationService] FFID validation request successful");
-            DecisionResponse decisionResponse = response.getBody();
-            if (decisionResponse != null && decisionResponse.getOutcome() != null) {
+            DecisionResponse[] responses = response.getBody();
+            if (responses != null && responses.length > 0) {
+                DecisionResponse decisionResponse = responses[0];
                 // Log the response payload
                 try {
-                    String responseJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decisionResponse);
+                    String responseJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(responses);
                     logger.info("FFID Validation Response:\n{}", responseJson);
                 } catch (Exception e) {
                     logger.error("Error serializing response payload", e);
                 }
                 
-                logger.info("[FFIDValidationService] Outcome status: {}", decisionResponse.getOutcome().getStatus());
-                return ResponseEntity.ok(decisionResponse);
-            } else {
-                logger.warn("[FFIDValidationService] Response body has null outcome");
-                return ResponseEntity.ok(null);
+                if (decisionResponse.getOutcome() != null) {
+                    logger.info("[FFIDValidationService] Outcome status: {}", decisionResponse.getOutcome().getStatus());
+                    return ResponseEntity.ok(decisionResponse);
+                }
             }
-
+            logger.warn("[FFIDValidationService] Response body has null outcome");
+            return ResponseEntity.ok(null);
         } catch (Exception e) {
             logger.error("[FFIDValidationService] Error during FFID validation: {}", e.getMessage());
             throw e;
