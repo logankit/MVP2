@@ -8,36 +8,24 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.equifax.api.interconnect.model.DecisionResponse;
 import com.equifax.api.interconnect.model.OktaTokenResponse;
 import com.equifax.api.interconnect.model.ReferenceFFIDRequest;
-import com.equifax.api.interconnect.util.CommonLogger;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +57,8 @@ public class FFIDValidationService {
             decode(cor.rate_tier, 'Grant', 'Y', 'N') grant_dsg,
             decode(cor.rate_tier, 'Commitment', 'Y', 'N') cmt_dsg,
             decode(cco.aggregator_link, NULL, 'N', 'Y') Has_Aggr_Linkage,
-            cco.contract_price amount
+            cco.contract_price amount,
+            cco.fulfillment_id
         FROM 
             c2o_contract_entitlement ce,
             c2o_contract c,
@@ -87,7 +76,8 @@ public class FFIDValidationService {
             AND c.contract_Id = cbi.contract_Id
             AND cor.charge_offer_id = cco.charge_offer_id
             AND cco.id = ce.line_charge_offer_id
-            AND cco.purchase_end_date is null
+            AND (cco.purchase_end_date is null or cco.purchase_end_date > trunc(sysdate))
+            AND cco.fulfillment_id = :fulfillmentId
             AND c.version_status in (32,34)
         ORDER BY 
             cco.charge_offer_id
@@ -95,8 +85,8 @@ public class FFIDValidationService {
 
     @Data
     @AllArgsConstructor
-    private static class FFIDQueryResult {
-        private String newBillTo;
+    public class FFIDQueryResult {
+        private Boolean newBillTo;
         private Long contractId;
         private String chargeOfferId;
         private String buId;
@@ -105,132 +95,117 @@ public class FFIDValidationService {
         private String grantDsg;
         private String cmtDsg;
         private String hasAggrLinkage;
-        private java.math.BigDecimal amount;
+        private BigDecimal amount;
+        private String fulfillmentId;
     }
 
-    private List<FFIDQueryResult> executeFFIDQuery(Long contractId) {
-        try {
-            Query query = entityManager.createNativeQuery(FFID_QUERY)
-                .setParameter("contractId", contractId);
-
-            List<Object[]> results = query.getResultList();
-            
-            return results.stream()
-                .map(row -> new FFIDQueryResult(
-                    (String) row[0],           // newBillTo
-                    ((Number) row[1]).longValue(), // contractId
-                    (String) row[2],           // chargeOfferId
-                    (String) row[3],           // buId
-                    (String) row[4],           // efxId
-                    (String) row[5],           // chargeOfferType
-                    String.valueOf(row[6]),    // grantDsg
-                    String.valueOf(row[7]),    // cmtDsg
-                    String.valueOf(row[8]),    // hasAggrLinkage
-                    (java.math.BigDecimal) row[9]        // amount
-                ))
-                .collect(Collectors.toList());
-        } catch (Exception e) {
-            logger.error("Error executing FFID query for contract {}: {}", contractId, e.getMessage());
-            throw new RuntimeException("Error executing FFID query", e);
-        }
+    private List<FFIDQueryResult> executeFFIDQuery(Long contractId, String fulfillmentId) {
+        Query query = entityManager.createNativeQuery(FFID_QUERY)
+            .setParameter("contractId", contractId)
+            .setParameter("fulfillmentId", fulfillmentId);
+        
+        List<Object[]> results = query.getResultList();
+        return results.stream()
+            .map(result -> new FFIDQueryResult(
+                (Boolean) result[0],
+                ((Number) result[1]).longValue(),
+                String.valueOf(result[2]),
+                String.valueOf(result[3]),
+                String.valueOf(result[4]),
+                String.valueOf(result[5]),
+                String.valueOf(result[6]),
+                String.valueOf(result[7]),
+                String.valueOf(result[8]),
+                (BigDecimal) result[9],
+                String.valueOf(result[10])
+            ))
+            .collect(Collectors.toList());
     }
 
     private String getBuIdForContract(Long contractId) {
-        String sql = "SELECT BU_ID FROM C2O_CONTRACT_BU_INTR WHERE CONTRACT_ID = :contractId";
-        try {
-            return (String) entityManager.createNativeQuery(sql)
-                                      .setParameter("contractId", contractId)
-                                      .getSingleResult();
-        } catch (NoResultException e) {
-            throw new RuntimeException("No BU found for contract: " + contractId);
-        }
+        String query = "SELECT bu_id FROM c2o_contract_bu_intr WHERE contract_id = :contractId";
+        return (String) entityManager.createNativeQuery(query)
+            .setParameter("contractId", contractId)
+            .getSingleResult();
     }
 
     private ReferenceFFIDRequest buildFFIDPayload(List<FFIDQueryResult> results) {
         if (results.isEmpty()) {
-            throw new RuntimeException("No data found for the given contract");
+            return null;
         }
 
+        FFIDQueryResult firstResult = results.get(0);
         ReferenceFFIDRequest request = new ReferenceFFIDRequest();
         ReferenceFFIDRequest.ReferenceFFID referenceFFID = new ReferenceFFIDRequest.ReferenceFFID();
-
-        // Set basic fields
-        FFIDQueryResult firstResult = results.get(0);
-        referenceFFID.setNewBillTo(false); // Default to false as per requirement
+        
+        referenceFFID.setNewBillTo(firstResult.getNewBillTo() != null ? firstResult.getNewBillTo() : false);
         referenceFFID.setC2oGTMEfxID(firstResult.getEfxId());
         referenceFFID.setSfdGTMEfxID(firstResult.getEfxId());
 
-        // Set charge offers
-        referenceFFID.setActiveChargeOffers(
-            results.stream()
-                .map(FFIDQueryResult::getChargeOfferId)
-                .collect(Collectors.toList())
-        );
+        // Set active charge offers
+        List<String> activeChargeOffers = results.stream()
+            .map(FFIDQueryResult::getChargeOfferId)
+            .collect(Collectors.toList());
+        referenceFFID.setActiveChargeOffers(activeChargeOffers);
 
-        // Set unique charge offer types
-        referenceFFID.setActiveChargeOffersTypes(
-            results.stream()
-                .map(FFIDQueryResult::getChargeOfferType)
-                .distinct()
-                .collect(Collectors.toList())
-        );
+        // Set active charge offer types (unique)
+        List<String> activeChargeOfferTypes = results.stream()
+            .map(FFIDQueryResult::getChargeOfferType)
+            .distinct()
+            .collect(Collectors.toList());
+        referenceFFID.setActiveChargeOffersTypes(activeChargeOfferTypes);
 
         // Set DSGs
+        List<ReferenceFFIDRequest.DSG> dsgs = new ArrayList<>();
         ReferenceFFIDRequest.DSG dsg = new ReferenceFFIDRequest.DSG();
+        
         ReferenceFFIDRequest.ComitmentDSGs comitmentDSGs = new ReferenceFFIDRequest.ComitmentDSGs();
-        comitmentDSGs.setIsOwner("Y".equals(firstResult.getCmtDsg()));
-        comitmentDSGs.setHasAggrLinkage("Y".equals(firstResult.getHasAggrLinkage()));
-
-        ReferenceFFIDRequest.GrantDSGs grantDSGs = new ReferenceFFIDRequest.GrantDSGs();
-        grantDSGs.setIsOnwer("Y".equals(firstResult.getGrantDsg()));
-
+        comitmentDSGs.setIsOwner(false);
+        comitmentDSGs.setHasAggrLinkage(firstResult.getHasAggrLinkage().equals("Y"));
         dsg.setComitmentDSGs(comitmentDSGs);
+        
+        ReferenceFFIDRequest.GrantDSGs grantDSGs = new ReferenceFFIDRequest.GrantDSGs();
+        grantDSGs.setIsOnwer(false);
         dsg.setGrantDSGs(grantDSGs);
-        dsg.setHasAGGRs(false); // Hardcoded as per requirement
-
-        referenceFFID.setDSGs(Collections.singletonList(dsg));
+        
+        dsg.setHasAGGRs(false);
+        dsgs.add(dsg);
+        referenceFFID.setDSGs(dsgs);
 
         // Set fee charge offers
         List<ReferenceFFIDRequest.FeeChargeOffer> feeChargeOffers = results.stream()
-            .filter(r -> r.getAmount() != null)
-            .map(r -> {
-                ReferenceFFIDRequest.FeeChargeOffer fco = new ReferenceFFIDRequest.FeeChargeOffer();
-                fco.setChargeOffer(r.getChargeOfferId());
-                fco.setAmount(r.getAmount().intValue());
-                return fco;
+            .map(result -> {
+                ReferenceFFIDRequest.FeeChargeOffer feeChargeOffer = new ReferenceFFIDRequest.FeeChargeOffer();
+                feeChargeOffer.setChargeOffer(result.getChargeOfferId());
+                feeChargeOffer.setAmount(result.getAmount().intValue());
+                return feeChargeOffer;
             })
             .collect(Collectors.toList());
-
         referenceFFID.setFeeChargeOffers(feeChargeOffers);
 
         request.setReferenceFFID(referenceFFID);
         return request;
     }
 
-    public ResponseEntity<DecisionResponse> validateFFID(Long contractId) {
-        logger.info("Validating FFID for contract: {}", contractId);
+    public ResponseEntity<DecisionResponse> validateFFID(Long contractId, String fulfillmentId) {
+        logger.info("Validating FFID for contract: {} and fulfillment: {}", contractId, fulfillmentId);
         
-        List<FFIDQueryResult> queryResults = executeFFIDQuery(contractId);
-        ReferenceFFIDRequest request = buildFFIDPayload(queryResults);
-        
-        // Log the JSON payload
-        try {
-            String jsonPayload = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            logger.info("FFID Validation Request Payload:\n{}", jsonPayload);
-        } catch (Exception e) {
-            logger.error("Error serializing FFID request payload", e);
+        List<FFIDQueryResult> queryResults = executeFFIDQuery(contractId, fulfillmentId);
+        if (queryResults.isEmpty()) {
+            logger.warn("No results found for contract: {}", contractId);
+            return ResponseEntity.notFound().build();
         }
-        
-        logger.info("Successfully built FFID payload for contract: {}", contractId);
 
-        // Get BU ID using the dedicated method
-        String buId = getBuIdForContract(contractId);
-        String fullUrl = ffidValidationUrl + "_" + buId;
-
-        logger.info("[FFIDValidationService] Starting FFID validation");
-        logger.info("[FFIDValidationService] Using validation URL: {}", fullUrl);
+        ReferenceFFIDRequest request = buildFFIDPayload(queryResults);
+        if (request == null) {
+            logger.error("Failed to build FFID payload for contract: {}", contractId);
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
+            String fullUrl = ffidValidationUrl;
+            logger.info("[FFIDValidationService] Using validation URL: {}", fullUrl);
+
             // Get Okta token
             OktaTokenResponse tokenResponse = oktaTokenService.getOktaToken();
 
@@ -243,32 +218,23 @@ public class FFIDValidationService {
             HttpEntity<ReferenceFFIDRequest> requestEntity = new HttpEntity<>(request, headers);
 
             logger.info("[FFIDValidationService] Making POST request to validation endpoint");
-            ResponseEntity<DecisionResponse[]> response = restTemplate.exchange(
+            ResponseEntity<DecisionResponse> response = restTemplate.exchange(
                 fullUrl,
                 HttpMethod.POST,
                 requestEntity,
-                DecisionResponse[].class
+                DecisionResponse.class
             );
 
             logger.info("[FFIDValidationService] FFID validation request successful");
-            DecisionResponse[] responses = response.getBody();
-            if (responses != null && responses.length > 0) {
-                logger.info("[FFIDValidationService] Response body received");
-                DecisionResponse firstResponse = responses[0];
-                if (firstResponse.getOutcome() != null) {
-                    logger.info("[FFIDValidationService] Outcome status: {}", firstResponse.getOutcome().getStatus());
-                } else {
-                    logger.warn("[FFIDValidationService] Response body has null outcome");
-                }
-                return ResponseEntity.ok(firstResponse);
+            DecisionResponse decisionResponse = response.getBody();
+            if (decisionResponse != null && decisionResponse.getOutcome() != null) {
+                logger.info("[FFIDValidationService] Outcome status: {}", decisionResponse.getOutcome().getStatus());
+                return ResponseEntity.ok(decisionResponse);
             } else {
-                logger.warn("[FFIDValidationService] Received empty response body");
+                logger.warn("[FFIDValidationService] Response body has null outcome");
                 return ResponseEntity.ok(null);
             }
-        } catch (HttpClientErrorException e) {
-            logger.error("[FFIDValidationService] HTTP error during FFID validation: {} - {}", 
-                e.getStatusCode(), e.getResponseBodyAsString());
-            throw e;
+
         } catch (Exception e) {
             logger.error("[FFIDValidationService] Error during FFID validation: {}", e.getMessage());
             throw e;

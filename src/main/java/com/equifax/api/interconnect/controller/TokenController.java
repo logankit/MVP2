@@ -3,7 +3,7 @@ package com.equifax.api.interconnect.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.equifax.api.interconnect.model.OktaTokenResponse;
@@ -35,9 +35,13 @@ public class TokenController {
         }
     }
 
-    @GetMapping("/validateFFID/{contractId}")
-    public ResponseEntity<DecisionResponse> getValidateFFID(@PathVariable Long contractId) {
-        logger.info("[TokenController] Received request to validate FFID for contract: {}", contractId);
-        return ffidValidationService.validateFFID(contractId);
+    @GetMapping("/validateFFID")
+    public ResponseEntity<DecisionResponse> getValidateFFID(
+        @RequestParam("contractId") Long contractId,
+        @RequestParam("fulfillmentId") String fulfillmentId
+    ) {
+        logger.info("[TokenController] Received request to validate FFID for contract: {} and fulfillment: {}", 
+            contractId, fulfillmentId);
+        return ffidValidationService.validateFFID(contractId, fulfillmentId);
     }
 }
