@@ -1,8 +1,8 @@
-package com.equifax.api.interconnect.config;
+package com.equifax.c2o.api.interconnect.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import com.equifax.api.interconnect.util.ApiConstants;
+import com.equifax.c2o.api.interconnect.util.CommonLogger;
 
 @Configuration
 public class OktaConfig {

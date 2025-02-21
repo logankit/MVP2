@@ -8,7 +8,7 @@
         <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.equifax.api.interconnect</groupId>
+    <groupId>com.equifax.c2o.api.interconnect</groupId>
     <artifactId>c2o-interconnect-client</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>c2o-interconnect-client</name>
@@ -102,6 +102,7 @@
             <artifactId>lombok</artifactId>
             <version>1.18.34</version>
             <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -112,6 +113,11 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
+        </dependency>
+        <dependency>
+            <groupId>com.equifax.c2o.api.contract</groupId>
+            <artifactId>common</artifactId>
+            <version>0.0.3</version>
         </dependency>
 
         <!-- Testing Dependencies -->

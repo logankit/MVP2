@@ -1,4 +1,4 @@
-package com.equifax.api.interconnect.model;
+package com.equifax.c2o.api.interconnect.model;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;

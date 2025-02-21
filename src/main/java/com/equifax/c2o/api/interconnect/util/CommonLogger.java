@@ -1,4 +1,4 @@
-package com.equifax.api.interconnect.util;
+package com.equifax.c2o.api.interconnect.util;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;

@@ -1,4 +1,4 @@
-package com.equifax.api.interconnect.config;
+package com.equifax.c2o.api.interconnect.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

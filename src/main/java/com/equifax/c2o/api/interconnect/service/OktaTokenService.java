@@ -1,6 +1,7 @@
-package com.equifax.api.interconnect.service;
+package com.equifax.c2o.api.interconnect.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,9 +14,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.equifax.api.interconnect.config.OktaConfig;
-import com.equifax.api.interconnect.model.OktaTokenResponse;
-import com.equifax.api.interconnect.util.CommonLogger;
+import com.equifax.c2o.api.interconnect.config.OktaConfig;
+import com.equifax.c2o.api.interconnect.model.OktaTokenResponse;
+import com.equifax.c2o.api.interconnect.util.CommonLogger;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -37,6 +38,9 @@ public class OktaTokenService {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     public OktaTokenResponse getOktaToken() {
         // Check if running in local profile
@@ -94,7 +98,6 @@ public class OktaTokenService {
             sslContext.init(null, trustAllCerts, new SecureRandom());
 
             // Create RestTemplate with SSL context that trusts all certificates
-            RestTemplate restTemplate = new RestTemplate();
             HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
             

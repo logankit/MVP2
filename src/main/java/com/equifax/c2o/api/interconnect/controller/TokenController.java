@@ -1,18 +1,20 @@
-package com.equifax.api.interconnect.controller;
+package com.equifax.c2o.api.interconnect.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;`
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.equifax.api.interconnect.model.OktaTokenResponse;
-import com.equifax.api.interconnect.model.DecisionResponse;
-import com.equifax.api.interconnect.service.OktaTokenService;
-import com.equifax.api.interconnect.service.FFIDValidationService;
-import com.equifax.api.interconnect.util.CommonLogger;
+import com.equifax.c2o.api.interconnect.model.OktaTokenResponse;
+import com.equifax.c2o.api.contract.common.type.response.mirrorFfid.MirrorFfidResponse;
+import com.equifax.c2o.api.interconnect.service.OktaTokenService;
+import com.equifax.c2o.api.interconnect.service.FFIDValidationService;
+import com.equifax.c2o.api.interconnect.util.CommonLogger;
 
 @RestController
+@RequestMapping("/interconnect/api/v1")
 public class TokenController {
     private static final CommonLogger logger = CommonLogger.getLogger(TokenController.class);
 
@@ -35,13 +37,11 @@ public class TokenController {
         }
     }
 
-    @GetMapping("/validateFFID")
-    public ResponseEntity<DecisionResponse> getValidateFFID(
+    @GetMapping("/validate")
+    public ResponseEntity<MirrorFfidResponse> validateFFID(
         @RequestParam("contractId") Long contractId,
         @RequestParam("fulfillmentId") String fulfillmentId
     ) {
-        logger.info("[TokenController] Received request to validate FFID for contract: {} and fulfillment: {}", 
-            contractId, fulfillmentId);
         return ffidValidationService.validateFFID(contractId, fulfillmentId);
     }
 }
